@@ -29,6 +29,16 @@ body {
   padding: 2.4rem;
 }
 
+::-webkit-scrollbar {
+  width: 4px;
+  background-color: var(--color-background-900);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 8px;
+}
+
 /* ******* */
 
 .nav-bar {
