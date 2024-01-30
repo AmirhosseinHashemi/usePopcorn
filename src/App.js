@@ -111,19 +111,19 @@ function Box({ children }) {
   );
 }
 
-function MoviesList({ movies }) {
+function MoviesList({ movies, onSelect }) {
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} />
+        <Movie movie={movie} key={movie.imdbID} onSelect={onSelect} />
       ))}
     </ul>
   );
 }
 
-function Movie({ movie }) {
+function Movie({ movie, onSelect }) {
   return (
-    <li>
+    <li onClick={() => onSelect(movie.imdbID)}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -207,6 +207,39 @@ function ErrorMessage({ message }) {
   return <p className="error">{message}</p>;
 }
 
+function MovieDetails({ id, onCloseMovie }) {
+  const [movie, setMovie] = useState({});
+
+  useEffect(
+    function () {
+      async function fetchMovieDetails() {
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&i=${id}`
+        );
+        if (!res.ok)
+          throw new Error("Somthing went wrong with fetching movie :(");
+
+        const data = await res.json();
+        if (data.Response === "False")
+          throw new Error("⛔ Movie not fount 404 ");
+
+        setMovie(data);
+      }
+      fetchMovieDetails();
+    },
+    [id]
+  );
+
+  return (
+    <div className="details">
+      <button onClick={onCloseMovie} className="btn-back">
+        &larr;
+      </button>
+      <p>{movie.Title}</p>
+    </div>
+  );
+}
+
 //////////////////////////////////////////////////////
 export default function App() {
   const [query, setQuery] = useState("");
@@ -214,6 +247,15 @@ export default function App() {
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+
+  function handleSelectMovie(id) {
+    setSelectedId(id === selectedId ? null : id);
+  }
+
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
 
   useEffect(
     function () {
@@ -259,13 +301,21 @@ export default function App() {
       <Main>
         <Box>
           {isLoading && <Loader />}
-          {!isLoading && !error && <MoviesList movies={movies} />}
+          {!isLoading && !error && (
+            <MoviesList movies={movies} onSelect={handleSelectMovie} />
+          )}
           {error && <ErrorMessage message={error} />}
         </Box>
 
         <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMovieList watched={watched} />
+          {selectedId ? (
+            <MovieDetails id={selectedId} onCloseMovie={handleCloseMovie} />
+          ) : (
+            <>
+              <WatchedSummary watched={watched} />
+              <WatchedMovieList watched={watched} />
+            </>
+          )}
         </Box>
       </Main>
     </>
