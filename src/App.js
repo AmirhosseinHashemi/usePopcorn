@@ -211,6 +211,7 @@ function ErrorMessage({ message }) {
 function MovieDetails({ id, onCloseMovie }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const {
     Title: title,
@@ -228,19 +229,24 @@ function MovieDetails({ id, onCloseMovie }) {
   useEffect(
     function () {
       async function fetchMovieDetails() {
-        setIsLoading(true);
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&i=${id}`
-        );
-        if (!res.ok)
-          throw new Error("Somthing went wrong with fetching movie :(");
+        try {
+          setIsLoading(true);
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&i=${id}`
+          );
+          if (!res.ok)
+            throw new Error("Somthing went wrong with fetching movie :(");
 
-        const data = await res.json();
-        if (data.Response === "False")
-          throw new Error("⛔ Movie not fount 404 ");
+          const data = await res.json();
+          if (data.Response === "False")
+            throw new Error("⛔ Movie not fount 404 ");
 
-        setMovie(data);
-        setIsLoading(false);
+          setMovie(data);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
       }
       fetchMovieDetails();
     },
@@ -249,7 +255,9 @@ function MovieDetails({ id, onCloseMovie }) {
 
   return (
     <div className="details">
-      {isLoading ? (
+      {error ? (
+        <ErrorMessage message={error} />
+      ) : isLoading ? (
         <Loader />
       ) : (
         <>
