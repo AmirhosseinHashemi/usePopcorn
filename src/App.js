@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StarRating from "./StartRating";
 
 const tempMovieData = [
   {
@@ -209,10 +210,25 @@ function ErrorMessage({ message }) {
 
 function MovieDetails({ id, onCloseMovie }) {
   const [movie, setMovie] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    Title: title,
+    Year: year,
+    Poster: poster,
+    Runtime: runtime,
+    imdbRating,
+    Plot: plot,
+    Released: released,
+    Actors: actors,
+    Director: director,
+    Genre: genre,
+  } = movie;
 
   useEffect(
     function () {
       async function fetchMovieDetails() {
+        setIsLoading(true);
         const res = await fetch(
           `http://www.omdbapi.com/?apikey=${KEY}&i=${id}`
         );
@@ -224,6 +240,7 @@ function MovieDetails({ id, onCloseMovie }) {
           throw new Error("⛔ Movie not fount 404 ");
 
         setMovie(data);
+        setIsLoading(false);
       }
       fetchMovieDetails();
     },
@@ -232,10 +249,40 @@ function MovieDetails({ id, onCloseMovie }) {
 
   return (
     <div className="details">
-      <button onClick={onCloseMovie} className="btn-back">
-        &larr;
-      </button>
-      <p>{movie.Title}</p>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <header>
+            <button className="btn-back" onClick={onCloseMovie}>
+              &larr;
+            </button>
+            <img src={poster} alt={`poster of ${movie} movie`}></img>
+
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>
+                {released} &bull; {runtime}
+              </p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐</span>
+                {imdbRating} IMDB rating
+              </p>
+            </div>
+          </header>
+
+          <section>
+            <StarRating className="rating" maxRating={10} size={24} />
+
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Starring {actors}</p>
+            <p>Directed by {director}</p>
+          </section>
+        </>
+      )}
     </div>
   );
 }
