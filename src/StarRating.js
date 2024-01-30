@@ -35,7 +35,7 @@ export default function StarRating({
 
   function handleRate(num) {
     setRating(num);
-    // onSetRating(num);
+    onSetRating(num);
   }
 
   const textStyle = {

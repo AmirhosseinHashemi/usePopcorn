@@ -167,21 +167,25 @@ function WatchedSummary({ watched }) {
   );
 }
 
-function WatchedMovieList({ watched }) {
+function WatchedMovieList({ watched, onDeleteWatched }) {
   return (
     <ul className="list">
       {watched.map((movie) => (
-        <WatchedMovie movie={movie} key={movie.imdbID} />
+        <WatchedMovie
+          movie={movie}
+          key={movie.imdbID}
+          onDeleteWatched={onDeleteWatched}
+        />
       ))}
     </ul>
   );
 }
 
-function WatchedMovie({ movie }) {
+function WatchedMovie({ movie, onDeleteWatched }) {
   return (
     <li>
-      <img src={movie.Poster} alt={`${movie.Title} poster`} />
-      <h3>{movie.Title}</h3>
+      <img src={movie.poster} alt={`${movie.title} poster`} />
+      <h3>{movie.title}</h3>
       <div>
         <p>
           <span>⭐️</span>
@@ -195,6 +199,13 @@ function WatchedMovie({ movie }) {
           <span>⏳</span>
           <span>{movie.runtime} min</span>
         </p>
+
+        <button
+          className="btn-delete"
+          onClick={() => onDeleteWatched(movie.imdbID)}
+        >
+          X
+        </button>
       </div>
     </li>
   );
@@ -208,10 +219,16 @@ function ErrorMessage({ message }) {
   return <p className="error">{message}</p>;
 }
 
-function MovieDetails({ id, onCloseMovie }) {
+function MovieDetails({ id, onCloseMovie, onAddToWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [userRating, setUserRating] = useState("");
+
+  const isWatched = watched.map((movie) => movie.imdbID).includes(id);
+  const userRatingWatched = watched.find(
+    (movie) => movie.imdbID === id
+  )?.userRating;
 
   const {
     Title: title,
@@ -225,6 +242,21 @@ function MovieDetails({ id, onCloseMovie }) {
     Director: director,
     Genre: genre,
   } = movie;
+
+  function handleAdd() {
+    const newWatchedMovie = {
+      runtime: Number(runtime.split(" ").at(0)),
+      imdbRating: Number(imdbRating),
+      imdbID: id,
+      poster,
+      title,
+      year,
+      userRating,
+    };
+
+    onAddToWatched(newWatchedMovie);
+    onCloseMovie();
+  }
 
   useEffect(
     function () {
@@ -281,8 +313,24 @@ function MovieDetails({ id, onCloseMovie }) {
           </header>
 
           <section>
-            <StarRating className="rating" maxRating={10} size={24} />
-
+            <div className="rating">
+              {isWatched ? (
+                <p>You have rated this movie before, {userRatingWatched}⭐</p>
+              ) : (
+                <>
+                  <StarRating
+                    maxRating={10}
+                    size={24}
+                    onSetRating={setUserRating}
+                  />
+                  {userRating && (
+                    <button className="btn-add" onClick={handleAdd}>
+                      + add to watched
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
             <p>
               <em>{plot}</em>
             </p>
@@ -310,6 +358,14 @@ export default function App() {
 
   function handleCloseMovie() {
     setSelectedId(null);
+  }
+
+  function handleAddToWatched(movie) {
+    setWatched((watched) => [...watched, movie]);
+  }
+
+  function handleDeleteWatched(id) {
+    setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
   useEffect(
@@ -364,11 +420,19 @@ export default function App() {
 
         <Box>
           {selectedId ? (
-            <MovieDetails id={selectedId} onCloseMovie={handleCloseMovie} />
+            <MovieDetails
+              onAddToWatched={handleAddToWatched}
+              onCloseMovie={handleCloseMovie}
+              watched={watched}
+              id={selectedId}
+            />
           ) : (
             <>
               <WatchedSummary watched={watched} />
-              <WatchedMovieList watched={watched} />
+              <WatchedMovieList
+                onDeleteWatched={handleDeleteWatched}
+                watched={watched}
+              />
             </>
           )}
         </Box>
