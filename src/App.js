@@ -260,6 +260,18 @@ function MovieDetails({ id, onCloseMovie, onAddToWatched, watched }) {
 
   useEffect(
     function () {
+      if (!title) return;
+      document.title = `Movie | ${title}`;
+
+      return function () {
+        document.title = "usePopcorn";
+      };
+    },
+    [title]
+  );
+
+  useEffect(
+    function () {
       async function fetchMovieDetails() {
         try {
           setIsLoading(true);
