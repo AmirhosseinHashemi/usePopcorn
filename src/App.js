@@ -29,9 +29,24 @@ function Logo() {
 function Search({ query, setQuery }) {
   const inputEl = useRef(null);
 
-  useEffect(function () {
-    inputEl.current.focus();
-  });
+  useEffect(
+    function () {
+      function callBack(ev) {
+        if (document.activeElement === inputEl.current) return;
+
+        if (ev.code === "Enter") {
+          inputEl.current.focus();
+          setQuery("");
+        }
+      }
+      document.addEventListener("keydown", callBack);
+
+      return function () {
+        document.removeEventListener("keydown", callBack);
+      };
+    },
+    [setQuery]
+  );
 
   return (
     <input
