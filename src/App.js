@@ -270,7 +270,7 @@ function MovieDetails({ id, onCloseMovie, onAddToWatched, watched }) {
         try {
           setIsLoading(true);
           const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&i=${id}`
+            `https://www.omdbapi.com/?apikey=${KEY}&i=${id}`
           );
           if (!res.ok)
             throw new Error("Somthing went wrong with fetching movie :(");
